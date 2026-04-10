@@ -15,8 +15,8 @@ const initialFormData = {
 
 function App() {
   const [applications, setApplications] = useState([])
-
   const [formData, setFormData] = useState(initialFormData)
+  const [filter, setFilter] = useState("All")
 
   async function fetchApplications() {
     const response = await fetch("http://localhost:5000/api/applications");
@@ -64,9 +64,13 @@ function App() {
     })
 
     setApplications(current =>
-      current.filter(app => app.id != id)
+      current.filter(app => app.id !== id)
     )
   }
+
+  const filteredApplications = filter === "All"
+    ? applications
+    : applications.filter(app => app.status === filter);
 
   async function handleStatusChange(id, newStatus) {
     try{
@@ -79,7 +83,7 @@ function App() {
     });
 
     if (!response.ok) {
-      throw new Error("Faled to update status")
+      throw new Error("Failed to update status")
     }
 
     setApplications(current =>
@@ -92,9 +96,10 @@ function App() {
     
   } catch (error) {
     console.error(error);
+    }
   }
-  }
-  
+
+
   return (
     <div>
       <h1>Smart Application Assistant</h1>
@@ -135,17 +140,16 @@ function App() {
           <option value="Offer">Offer</option>
           <option value="Rejected">Rejected</option>
         </select>
-            
         <button type="submit">Save</button>
       </form>
-
-      <p>Company: {formData.company}</p>
-      <p>Role: {formData.role}</p>
-      <p>Location: {formData.location}</p>
-      <p>Status: {formData.status}</p>
-      <p>Date Applied: {formData.dateApplied}</p>
-      
-      {applications.map((app) => (
+      <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+        <option value="All">All</option>
+        <option value="Applied">Applied</option>
+        <option value="Interviewing">Interviewing</option>
+        <option value="Rejected">Rejected</option>
+        <option value="Offer">Offer</option>
+      </select>
+      {filteredApplications.map((app) => (
         <div key ={app.id}>
           <p>Company: {app.company}</p>
           <p>Role: {app.role}</p>
