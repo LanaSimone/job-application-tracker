@@ -24,7 +24,6 @@ function App() {
     setApplications(data)
   }
 
-  
   function handleInputChange(event){
     const {name, value} = event.target;
     setFormData ({
@@ -99,6 +98,13 @@ function App() {
     }
   }
 
+  function getStatusColor(status){
+    if(status === "Applied") return "gray";
+    if(status === "Interviewing") return "blue";
+    if(status === "Offer") return "green";
+    if(status === "Rejected") return "red"
+  }
+
 
   return (
     <div>
@@ -160,6 +166,9 @@ function App() {
             <option value="Offer">Offer</option>
             <option value="Rejected">Rejected</option>
           </select>
+          <p style={{ color: getStatusColor(app.status), fontWeight: "bold" }}>
+            status: {app.status}
+          </p>
           <p>Date Applied: {app.date_applied}</p>
           <button onClick={() => handleDelete(app.id)}>Delete</button>
         </div>
