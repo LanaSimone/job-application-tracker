@@ -1,28 +1,41 @@
 body {
-  font-family: Arial, sans-serif;
-  background-color: #f5f5f5;
   margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #eef2f7;
 }
 
 .container {
   max-width: 1100px;
-  margin: auto;
-  padding: 20px;
+  margin: 0 auto;
+  padding: 30px 20px;
 }
 
 h1, h2 {
   text-align: center;
 }
 
+.form-section,
+.card {
+  background: white;
+}
+
 form {
   margin-bottom: 20px;
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 10px;
+  margin-top: 10px;
 }
 
 .form-section {
   background: white;
   padding: 20px;
   border-radius: 8px;
-  margin-bottom: 25px;
+  margin-bottom: 30px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
@@ -58,10 +71,69 @@ button:hover {
   margin-bottom: 15px;
   border-radius: 8px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card p {
+  margin: 6px 0;
+  font-size: 15px;
+  color: #333;
+  line-height: 1.4;
+}
+
+.card strong {
+  color: #111;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 12px rgba(0,0,0,0.15);
 }
 
 .applications-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 15px;
+}
+
+h1, h2 {
+  text-align: center;
+  margin: 10px 0;
+}
+
+h1 {
+  margin-top: 20px;
+  font-size: 28px;
+}
+
+h2 {
+  margin-bottom: 20px;
+  color: #555;
+  font-size: 20px;
+  color: #666;
+}
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin: 20px 0 30px;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.stat-label {
+  margin: 0;
+  font-size: 13px;
+  color: #666;
+}
+
+.stat-card h3 {
+  margin: 8px 0 0;
+  font-size: 24px;
 }

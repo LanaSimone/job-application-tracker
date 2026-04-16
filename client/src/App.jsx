@@ -108,9 +108,8 @@ function App() {
 
   return (
     <div className="container">
-      <h1>Smart Application Assistant</h1>
-      <h2>Applications</h2>
       <div className="form-section">
+        <p className="section-title">Add Application</p>
         <form onSubmit={handleSubmit}>
           <input
           type="date"
@@ -150,6 +149,21 @@ function App() {
           <button type="submit">Save</button>
         </form>
       </div>
+      <div className="stats-row">
+        <div className="stat-card">
+          <p className="stat-label">Total</p>
+          <h3>{applications.length}</h3>
+        </div>
+        <div className="stat-card">
+          <p className="stat-label">Interviewing</p>
+          <h3>{applications.filter(app => app.status === "Interviewing").length}</h3>
+        </div>
+        <div className="stat-card">
+          <p className="stat-label">Offers</p>
+          <h3>{applications.filter(app => app.status === "Offer").length}</h3>
+        </div>
+      </div>
+      <p className="section-title">Your Applications</p>
       <select
       className="filter-select"
       value={filter}
@@ -164,9 +178,9 @@ function App() {
       <div className="applications-grid">
           {filteredApplications.map((app) => (
             <div className="card" key={app.id}>
-              <p>Company: {app.company}</p>
-              <p>Role: {app.role}</p>
-              <p>Location:{app.location}</p>
+              <p><strong>Company:</strong> {app.company}</p>
+              <p><strong>Role:</strong> {app.role}</p>
+              <p><strong>Location:</strong> {app.location}</p>
               <select value={app.status} onChange={(event) => handleStatusChange(app.id, event.target.value)}>
                 <option value="Applied">Applied</option>
                 <option value="Interviewing">Interviewing</option>
