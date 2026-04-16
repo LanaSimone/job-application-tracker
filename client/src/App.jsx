@@ -108,38 +108,44 @@ function App() {
 
   return (
     <div className="container">
+      <div className="page-intro">      
+        <h1 className="intro-title">Stay organized with your applications</h1>
+        <p className="intro-text">
+          Track job opportunities, update statuses, and keep everything in one place.
+        </p>
+      </div>
       <div className="form-section">
         <p className="section-title">Add Application</p>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="application-form">
           <input
-          type="date"
-          name="dateApplied"
-          placeholder="Date Applied"
-          value={formData.dateApplied}
-          onChange={handleInputChange}
+            type="date"
+            name="dateApplied"
+            placeholder="Date Applied"
+            value={formData.dateApplied}
+            onChange={handleInputChange}
           />
           <input
-          name="company"
-          placeholder="Company"
-          value={formData.company}
-          onChange={handleInputChange}
+            name="company"
+            placeholder="Company"
+            value={formData.company}
+            onChange={handleInputChange}
           />
           <input
-          name="role"
-          placeholder="Position"
-          value={formData.role}
-          onChange={handleInputChange}
+            name="role"
+            placeholder="Position"
+            value={formData.role}
+            onChange={handleInputChange}
           />
           <input
-          name="location"
-          placeholder="Location"
-          value={formData.location}
-          onChange={handleInputChange}
+            name="location"
+            placeholder="Location"
+            value={formData.location}
+            onChange={handleInputChange}
           />
           <select
-          name="status"
-          value={formData.status}
-          onChange={handleInputChange}
+            name="status"
+            value={formData.status}
+            onChange={handleInputChange}
           >
             <option value="Applied">Applied</option>
             <option value="Interviewing">Interviewing</option>
@@ -163,18 +169,20 @@ function App() {
           <h3>{applications.filter(app => app.status === "Offer").length}</h3>
         </div>
       </div>
-      <p className="section-title">Your Applications</p>
-      <select
-      className="filter-select"
-      value={filter}
-      onChange={(e) => setFilter(e.target.value)}
-      >
-        <option value="All">All</option>
-        <option value="Applied">Applied</option>
-        <option value="Interviewing">Interviewing</option>
-        <option value="Rejected">Rejected</option>
-        <option value="Offer">Offer</option>
-      </select>
+      <div className="applications-header">
+        <p className="section-title">Your Applications</p>
+        <select
+          className="filter-select"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+        >
+          <option value="All">All</option>
+          <option value="Applied">Applied</option>
+          <option value="Interviewing">Interviewing</option>
+          <option value="Rejected">Rejected</option>
+          <option value="Offer">Offer</option>
+        </select>
+    </div>
       <div className="applications-grid">
           {filteredApplications.map((app) => (
             <div className="card" key={app.id}>
@@ -188,10 +196,10 @@ function App() {
                 <option value="Rejected">Rejected</option>
               </select>
               <p style={{ color: getStatusColor(app.status), fontWeight: "bold" }}>
-                status: {app.status}
+                Status: {app.status}
               </p>
-              <p>Date Applied: {app.date_applied}</p>
-              <button onClick={() => handleDelete(app.id)}>Delete</button>
+              <p><strong>Date Applied:</strong> {app.date_applied}</p>
+              <button className="delete-button" onClick={() => handleDelete(app.id)}>Delete</button>
             </div>
           ))}
         </div>
