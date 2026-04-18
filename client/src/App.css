@@ -238,15 +238,28 @@ button:hover {
 }
 
 .applications-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: 20px;
 }
 
-.filter-select {
-  width: 180px;
-  margin: 0;
+.controls {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 16px;
+  align-items: end;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.control-group label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #64748b;
 }
 
 .applications-grid {
@@ -373,14 +386,8 @@ button:hover {
     grid-column: auto;
   }
 
-  .applications-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-
-  .filter-select {
-    width: 100%;
+  .controls {
+    grid-template-columns: 1fr;
   }
 
   .page-intro {

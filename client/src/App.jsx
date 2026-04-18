@@ -17,6 +17,8 @@ function App() {
   const [applications, setApplications] = useState([]);
   const [formData, setFormData] = useState(initialFormData);
   const [filter, setFilter] = useState("All");
+  const [search, setSearch] = useState("");
+  const [sortOption, setSortOption] = useState("default");
 
   useEffect(() => {
     fetchApplications();
@@ -41,13 +43,19 @@ function App() {
 
     const response = await fetch("http://localhost:5000/api/applications", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify(formData)
     });
 
     const newApplication = await response.json();
 
-    setApplications((current) => [newApplication, ...current]);
+    setApplications((currentApplications) => [
+      newApplication,
+      ...currentApplications
+    ]);
+
     setFormData(initialFormData);
   }
 
@@ -56,8 +64,8 @@ function App() {
       method: "DELETE"
     });
 
-    setApplications((current) =>
-      current.filter((application) => application.id !== id)
+    setApplications((currentApplications) =>
+      currentApplications.filter((application) => application.id !== id)
     );
   }
 
@@ -67,16 +75,22 @@ function App() {
         `http://localhost:5000/api/applications/${id}`,
         {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json"
+          },
           body: JSON.stringify({ status: newStatus })
         }
       );
 
-      if (!response.ok) throw new Error("Failed to update");
+      if (!response.ok) {
+        throw new Error("Failed to update status");
+      }
 
-      setApplications((current) =>
-        current.map((app) =>
-          app.id === id ? { ...app, status: newStatus } : app
+      setApplications((currentApplications) =>
+        currentApplications.map((application) =>
+          application.id === id
+            ? { ...application, status: newStatus }
+            : application
         )
       );
     } catch (error) {
@@ -84,10 +98,48 @@ function App() {
     }
   }
 
-  const filteredApplications =
+  const statusFiltered =
     filter === "All"
       ? applications
       : applications.filter((app) => app.status === filter);
+
+  const searchLower = search.toLowerCase();
+
+  const filteredApplications = searchLower
+    ? applications.filter((app) => {
+        return (
+          app.company.toLowerCase().includes(searchLower) ||
+          app.role.toLowerCase().includes(searchLower) ||
+          app.location.toLowerCase().includes(searchLower)
+        );
+      })
+    : statusFiltered;
+
+  const sortedApplications = [...filteredApplications];
+
+  if (sortOption === "company-asc") {
+    sortedApplications.sort((a, b) => {
+      return a.company.localeCompare(b.company);
+    });
+  }
+
+  if (sortOption === "company-desc") {
+    sortedApplications.sort((a, b) => {
+      return b.company.localeCompare(a.company);
+    });
+  }
+
+  if (sortOption === "newest") {
+    sortedApplications.sort((a, b) => {
+      return new Date(b.date_applied) - new Date(a.date_applied);
+    });
+  }
+
+  if (sortOption === "oldest") {
+    sortedApplications.sort((a, b) => {
+      return new Date(a.date_applied) - new Date(b.date_applied);
+    });
+  }
 
   return (
     <div className="container">
@@ -167,7 +219,9 @@ function App() {
           <p className="stat-label">Interviewing</p>
           <h3>
             {
-              applications.filter((app) => app.status === "Interviewing").length
+              applications.filter(
+                (application) => application.status === "Interviewing"
+              ).length
             }
           </h3>
         </div>
@@ -175,30 +229,61 @@ function App() {
         <div className="stat-card">
           <p className="stat-label">Offers</p>
           <h3>
-            {applications.filter((app) => app.status === "Offer").length}
+            {
+              applications.filter(
+                (application) => application.status === "Offer"
+              ).length
+            }
           </h3>
         </div>
       </section>
 
       <section className="applications-section">
         <div className="applications-header">
-          <p className="section-title">Your Applications</p>
 
-          <select
-            className="filter-select"
-            value={filter}
-            onChange={(event) => setFilter(event.target.value)}
-          >
-            <option value="All">All</option>
-            <option value="Applied">Applied</option>
-            <option value="Interviewing">Interviewing</option>
-            <option value="Rejected">Rejected</option>
-            <option value="Offer">Offer</option>
-          </select>
+          <div className="controls">
+            <div className="control-group">
+              <label>Search</label>
+              <input
+                placeholder="Search applications"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+              />
+            </div>
+
+            <div className="control-group">
+              <label>Filter</label>
+              <select
+                value={filter}
+                onChange={(event) => setFilter(event.target.value)}
+              >
+                <option value="All">All</option>
+                <option value="Applied">Applied</option>
+                <option value="Interviewing">Interviewing</option>
+                <option value="Rejected">Rejected</option>
+                <option value="Offer">Offer</option>
+              </select>
+            </div>
+
+            <div className="control-group">
+              <label>Sort</label>
+              <select
+                value={sortOption}
+                onChange={(event) => setSortOption(event.target.value)}
+              >
+                <option value="default">Default</option>
+                <option value="company-asc">Company A-Z</option>
+                <option value="company-desc">Company Z-A</option>
+                <option value="newest">Newest</option>
+                <option value="oldest">Oldest</option>
+              </select>
+            </div>
+          </div>
+
         </div>
 
         <div className="applications-grid">
-          {filteredApplications.map((application) => (
+          {sortedApplications.map((application) => (
             <div className="card" key={application.id}>
               <div className="card-header">
                 <div>
@@ -206,9 +291,7 @@ function App() {
                   <p className="card-role">{application.role}</p>
                 </div>
 
-                <span
-                  className={`status-badge ${application.status.toLowerCase()}`}
-                >
+                <span className={`status-badge ${application.status.toLowerCase()}`}>
                   {application.status}
                 </span>
               </div>
@@ -217,9 +300,7 @@ function App() {
                 <p>{application.location}</p>
                 <p>
                   {application.date_applied
-                    ? new Date(
-                        application.date_applied
-                      ).toLocaleDateString()
+                    ? new Date(application.date_applied).toLocaleDateString()
                     : ""}
                 </p>
               </div>
