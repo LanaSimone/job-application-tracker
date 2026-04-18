@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 
+const API_URL = "https://smart-application-assistant-api.onrender.com";
+
 const initialFormData = {
   company: "",
   role: "",
@@ -25,7 +27,7 @@ function App() {
   }, []);
 
   async function fetchApplications() {
-    const response = await fetch("http://localhost:5000/api/applications");
+    const response = await fetch(`${API_URL}/api/applications`);
     const data = await response.json();
     setApplications(data);
   }
@@ -41,7 +43,7 @@ function App() {
   async function handleSubmit(event) {
     event.preventDefault();
 
-    const response = await fetch("http://localhost:5000/api/applications", {
+    const response = await fetch(`${API_URL}/api/applications`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -60,7 +62,7 @@ function App() {
   }
 
   async function handleDelete(id) {
-    await fetch(`http://localhost:5000/api/applications/${id}`, {
+    await fetch(`${API_URL}/api/applications/${id}`, {
       method: "DELETE"
     });
 
@@ -71,8 +73,7 @@ function App() {
 
   async function handleStatusChange(id, newStatus) {
     try {
-      const response = await fetch(
-        `http://localhost:5000/api/applications/${id}`,
+      const response = await fetch(`${API_URL}/api/applications/${id}`,
         {
           method: "PUT",
           headers: {
