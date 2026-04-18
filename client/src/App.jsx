@@ -1,7 +1,16 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 
-const API_URL = "https://smart-application-assistant-api.onrender.com";
+const API_URL = "http://localhost:5000";
+
+function getAuthHeaders() {
+  const token = localStorage.getItem("token");
+
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`
+  };
+}
 
 const initialFormData = {
   company: "",
@@ -27,10 +36,29 @@ function App() {
   }, []);
 
   async function fetchApplications() {
-    const response = await fetch(`${API_URL}/api/applications`);
+  try {
+    const token = localStorage.getItem("token");
+
+    const response = await fetch(`${API_URL}/api/applications`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
     const data = await response.json();
-    setApplications(data);
+
+    if (!response.ok) {
+      console.error("Failed to fetch applications:", data);
+      setApplications([]);
+      return;
+    }
+
+    setApplications(Array.isArray(data) ? data : []);
+  } catch (error) {
+    console.error("Error fetching applications:", error);
+    setApplications([]);
   }
+}
 
   function handleInputChange(event) {
     const { name, value } = event.target;
@@ -41,29 +69,39 @@ function App() {
   }
 
   async function handleSubmit(event) {
-    event.preventDefault();
+  event.preventDefault();
 
+  try {
     const response = await fetch(`${API_URL}/api/applications`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify(formData)
     });
 
-    const newApplication = await response.json();
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error("Failed to create application:", data);
+      return;
+    }
 
     setApplications((currentApplications) => [
-      newApplication,
+      data,
       ...currentApplications
     ]);
 
     setFormData(initialFormData);
+  } catch (error) {
+    console.error("Error creating application:", error);
   }
+}
 
   async function handleDelete(id) {
     await fetch(`${API_URL}/api/applications/${id}`, {
-      method: "DELETE"
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`
+      }
     });
 
     setApplications((currentApplications) =>
@@ -73,15 +111,11 @@ function App() {
 
   async function handleStatusChange(id, newStatus) {
     try {
-      const response = await fetch(`${API_URL}/api/applications/${id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ status: newStatus })
-        }
-      );
+      const response = await fetch(`${API_URL}/api/applications/${id}`, {
+        method: "PUT",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ status: newStatus })
+      });
 
       if (!response.ok) {
         throw new Error("Failed to update status");
@@ -107,14 +141,14 @@ function App() {
   const searchLower = search.toLowerCase();
 
   const filteredApplications = searchLower
-    ? applications.filter((app) => {
-        return (
-          app.company.toLowerCase().includes(searchLower) ||
-          app.role.toLowerCase().includes(searchLower) ||
-          app.location.toLowerCase().includes(searchLower)
-        );
-      })
-    : statusFiltered;
+  ? applications.filter((app) => {
+      return (
+        (app.company || "").toLowerCase().includes(searchLower) ||
+        (app.role || "").toLowerCase().includes(searchLower) ||
+        (app.location || "").toLowerCase().includes(searchLower)
+      );
+    })
+  : statusFiltered;
 
   const sortedApplications = [...filteredApplications];
 
