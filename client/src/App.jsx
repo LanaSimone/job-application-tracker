@@ -304,7 +304,7 @@ function handleLogout() {
 
   if (!token) {
   return (
-    <div className="container">
+    <div className="container auth-page">
       <section className="top-section auth-layout">
         <div className="page-intro">
           <p className="hero-eyebrow">Smart Application Assistant</p>
@@ -315,12 +315,10 @@ function handleLogout() {
             Create an account or log in to manage your applications securely.
           </p>
         </div>
-
         <div className="form-section auth-card">
           <p className="section-title">
             {authMode === "login" ? "Login" : "Create Account"}
           </p>
-
           <form onSubmit={handleAuthSubmit} className="application-form auth-form">
             {authMode === "register" && (
               <input
@@ -330,7 +328,6 @@ function handleLogout() {
                 onChange={handleAuthInputChange}
               />
             )}
-
             <input
               name="email"
               type="email"
@@ -338,7 +335,6 @@ function handleLogout() {
               value={authFormData.email}
               onChange={handleAuthInputChange}
             />
-
             <input
               name="password"
               type="password"
@@ -346,14 +342,12 @@ function handleLogout() {
               value={authFormData.password}
               onChange={handleAuthInputChange}
             />
-
             {authError && <p className="auth-error">{authError}</p>}
-
             <button type="submit" className="primary-button">
               {authMode === "login" ? "Login" : "Register"}
             </button>
           </form>
-
+          <div className="demo-section">
           <button
             type="button"
             className="secondary-button"
@@ -362,6 +356,10 @@ function handleLogout() {
             Try Demo Account
           </button>
 
+          <p className="demo-hint">
+            No signup needed — try the demo account
+          </p>
+        </div>
           <button
             type="button"
             className="text-button"
