@@ -3,9 +3,7 @@ import "./App.css";
 
 const API_URL = "http://localhost:5000";
 
-function getAuthHeaders() {
-  const token = localStorage.getItem("token");
-
+function getAuthHeaders(token) {
   return {
     "Content-Type": "application/json",
     Authorization: `Bearer ${token}`
@@ -25,6 +23,15 @@ const initialFormData = {
 };
 
 function App() {
+  const [token, setToken] = useState(localStorage.getItem("token") || "");
+  const [authMode, setAuthMode] = useState("login");
+  const [authFormData, setAuthFormData] = useState({
+    username: "",
+    email: "",
+    password: ""
+  });
+  const [authError,setAuthError] = useState("");
+
   const [applications, setApplications] = useState([]);
   const [formData, setFormData] = useState(initialFormData);
   const [filter, setFilter] = useState("All");
@@ -32,13 +39,15 @@ function App() {
   const [sortOption, setSortOption] = useState("default");
 
   useEffect(() => {
+  if (token) {
     fetchApplications();
-  }, []);
+  } else {
+    setApplications([]);
+  }
+}, [token]);
 
   async function fetchApplications() {
   try {
-    const token = localStorage.getItem("token");
-
     const response = await fetch(`${API_URL}/api/applications`, {
       headers: {
         Authorization: `Bearer ${token}`
@@ -60,6 +69,123 @@ function App() {
   }
 }
 
+function handleAuthInputChange(event) {
+  const { name, value } = event.target;
+
+  setAuthFormData((currentData) => ({
+    ...currentData,
+    [name]: value
+  }));
+}
+
+async function handleAuthSubmit(event) {
+  event.preventDefault();
+  setAuthError("");
+
+  const endpoint =
+    authMode === "login" ? "/api/login" : "/api/register";
+
+  const requestBody =
+    authMode === "login"
+      ? {
+          email: authFormData.email,
+          password: authFormData.password
+        }
+      : {
+          username: authFormData.username,
+          email: authFormData.email,
+          password: authFormData.password
+        };
+
+  try {
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(requestBody)
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      setAuthError(data.error || "Authentication failed");
+      return;
+    }
+
+    if (authMode === "register") {
+      const loginResponse = await fetch(`${API_URL}/api/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email: authFormData.email,
+          password: authFormData.password
+        })
+      });
+
+      const loginData = await loginResponse.json();
+
+      if (!loginResponse.ok) {
+        setAuthError(loginData.error || "Registration succeeded but login failed");
+        return;
+      }
+
+      localStorage.setItem("token", loginData.token);
+      setToken(loginData.token);
+    } else {
+      localStorage.setItem("token", data.token);
+      setToken(data.token);
+    }
+
+    setAuthFormData({
+      username: "",
+      email: "",
+      password: ""
+    });
+  } catch (error) {
+    console.error("Authentication error:", error);
+    setAuthError("Something went wrong. Please try again.");
+  }
+}
+
+async function handleDemoLogin() {
+  setAuthError("");
+
+  try {
+    const response = await fetch(`${API_URL}/api/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        email: "demo@test.com",
+        password: "demo123"
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      setAuthError("Demo login failed");
+      return;
+    }
+
+    localStorage.setItem("token", data.token);
+    setToken(data.token);
+  } catch (error) {
+    console.error("Demo login error:", error);
+    setAuthError("Demo login failed");
+  }
+}
+
+function handleLogout() {
+  localStorage.removeItem("token");
+  setToken("");
+  setApplications([]);
+}
+
   function handleInputChange(event) {
     const { name, value } = event.target;
     setFormData({
@@ -74,7 +200,7 @@ function App() {
   try {
     const response = await fetch(`${API_URL}/api/applications`, {
       method: "POST",
-      headers: getAuthHeaders(),
+      headers: getAuthHeaders(token),
       body: JSON.stringify(formData)
     });
 
@@ -100,7 +226,7 @@ function App() {
     await fetch(`${API_URL}/api/applications/${id}`, {
       method: "DELETE",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`
+        Authorization: `Bearer ${token}`
       }
     });
 
@@ -113,7 +239,7 @@ function App() {
     try {
       const response = await fetch(`${API_URL}/api/applications/${id}`, {
         method: "PUT",
-        headers: getAuthHeaders(),
+        headers: getAuthHeaders(token),
         body: JSON.stringify({ status: newStatus })
       });
 
@@ -176,29 +302,109 @@ function App() {
     });
   }
 
+  if (!token) {
   return (
     <div className="container">
+      <section className="top-section auth-layout">
+        <div className="page-intro">
+          <p className="hero-eyebrow">Smart Application Assistant</p>
+          <h1 className="intro-title">
+            Track your job applications in one place
+          </h1>
+          <p className="intro-text">
+            Create an account or log in to manage your applications securely.
+          </p>
+        </div>
+
+        <div className="form-section auth-card">
+          <p className="section-title">
+            {authMode === "login" ? "Login" : "Create Account"}
+          </p>
+
+          <form onSubmit={handleAuthSubmit} className="application-form auth-form">
+            {authMode === "register" && (
+              <input
+                name="username"
+                placeholder="Username"
+                value={authFormData.username}
+                onChange={handleAuthInputChange}
+              />
+            )}
+
+            <input
+              name="email"
+              type="email"
+              placeholder="Email"
+              value={authFormData.email}
+              onChange={handleAuthInputChange}
+            />
+
+            <input
+              name="password"
+              type="password"
+              placeholder="Password"
+              value={authFormData.password}
+              onChange={handleAuthInputChange}
+            />
+
+            {authError && <p className="auth-error">{authError}</p>}
+
+            <button type="submit" className="primary-button">
+              {authMode === "login" ? "Login" : "Register"}
+            </button>
+          </form>
+
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={handleDemoLogin}
+          >
+            Try Demo Account
+          </button>
+
+          <button
+            type="button"
+            className="text-button"
+            onClick={() =>
+              setAuthMode(authMode === "login" ? "register" : "login")
+            }
+          >
+            {authMode === "login"
+              ? "Need an account? Register"
+              : "Already have an account? Login"}
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}
+  return (
+    <div className="container">
+        <div className="top-bar">
+        <button
+          type="button"
+          className="logout-button"
+          onClick={handleLogout}
+        >
+          Sign Out
+        </button>
+      </div>
       <section className="top-section">
         <div className="page-intro">
           <p className="hero-eyebrow">Smart Application Assistant</p>
-
           <h1 className="intro-title">Stay organized with your applications</h1>
-
           <p className="intro-text">
             Track job opportunities, update statuses, and keep everything in one
             place with a cleaner, more visual workflow.
           </p>
-
           <div className="hero-badges">
             <span>Track applications</span>
             <span>Monitor progress</span>
             <span>Stay organized</span>
           </div>
         </div>
-
         <div className="form-section">
           <p className="section-title">Add Application</p>
-
           <form onSubmit={handleSubmit} className="application-form">
             <input
               type="date"
@@ -206,28 +412,24 @@ function App() {
               value={formData.dateApplied}
               onChange={handleInputChange}
             />
-
             <input
               name="company"
               placeholder="Company"
               value={formData.company}
               onChange={handleInputChange}
             />
-
             <input
               name="role"
               placeholder="Position"
               value={formData.role}
               onChange={handleInputChange}
             />
-
             <input
               name="location"
               placeholder="Location"
               value={formData.location}
               onChange={handleInputChange}
             />
-
             <select
               name="status"
               value={formData.status}
@@ -238,18 +440,15 @@ function App() {
               <option value="Offer">Offer</option>
               <option value="Rejected">Rejected</option>
             </select>
-
             <button type="submit">Save</button>
           </form>
         </div>
       </section>
-
       <section className="stats-row">
         <div className="stat-card">
           <p className="stat-label">Total</p>
           <h3>{applications.length}</h3>
         </div>
-
         <div className="stat-card">
           <p className="stat-label">Interviewing</p>
           <h3>
@@ -260,7 +459,6 @@ function App() {
             }
           </h3>
         </div>
-
         <div className="stat-card">
           <p className="stat-label">Offers</p>
           <h3>
@@ -272,10 +470,8 @@ function App() {
           </h3>
         </div>
       </section>
-
       <section className="applications-section">
         <div className="applications-header">
-
           <div className="controls">
             <div className="control-group">
               <label>Search</label>
@@ -285,7 +481,6 @@ function App() {
                 onChange={(event) => setSearch(event.target.value)}
               />
             </div>
-
             <div className="control-group">
               <label>Filter</label>
               <select
@@ -299,7 +494,6 @@ function App() {
                 <option value="Offer">Offer</option>
               </select>
             </div>
-
             <div className="control-group">
               <label>Sort</label>
               <select
@@ -314,9 +508,7 @@ function App() {
               </select>
             </div>
           </div>
-
         </div>
-
         <div className="applications-grid">
           {sortedApplications.map((application) => (
             <div className="card" key={application.id}>
@@ -325,12 +517,10 @@ function App() {
                   <h3 className="card-company">{application.company}</h3>
                   <p className="card-role">{application.role}</p>
                 </div>
-
                 <span className={`status-badge ${application.status.toLowerCase()}`}>
                   {application.status}
                 </span>
               </div>
-
               <div className="card-details">
                 <p>{application.location}</p>
                 <p>
@@ -339,7 +529,6 @@ function App() {
                     : ""}
                 </p>
               </div>
-
               <div className="card-actions">
                 <select
                   value={application.status}
@@ -352,7 +541,6 @@ function App() {
                   <option value="Offer">Offer</option>
                   <option value="Rejected">Rejected</option>
                 </select>
-
                 <button
                   className="delete-button"
                   onClick={() => handleDelete(application.id)}
