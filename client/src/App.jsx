@@ -197,11 +197,28 @@ function handleLogout() {
   async function handleSubmit(event) {
   event.preventDefault();
 
+  const trimmedFormData = {
+    ...formData,
+    company: formData.company.trim(),
+    role: formData.role.trim(),
+    location: formData.location.trim(),
+    dateApplied: formData.dateApplied.trim()
+  };
+
+  if (
+    !trimmedFormData.dateApplied ||
+    !trimmedFormData.company ||
+    !trimmedFormData.role ||
+    !trimmedFormData.location
+  ) {
+    return;
+  }
+
   try {
     const response = await fetch(`${API_URL}/api/applications`, {
       method: "POST",
       headers: getAuthHeaders(token),
-      body: JSON.stringify(formData)
+      body: JSON.stringify(trimmedFormData)
     });
 
     const data = await response.json();
@@ -221,19 +238,6 @@ function handleLogout() {
     console.error("Error creating application:", error);
   }
 }
-
-  async function handleDelete(id) {
-    await fetch(`${API_URL}/api/applications/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-
-    setApplications((currentApplications) =>
-      currentApplications.filter((application) => application.id !== id)
-    );
-  }
 
   async function handleStatusChange(id, newStatus) {
     try {
@@ -404,42 +408,47 @@ function handleLogout() {
         <div className="form-section">
           <p className="section-title">Add Application</p>
           <form onSubmit={handleSubmit} className="application-form">
-            <input
-              type="date"
-              name="dateApplied"
-              value={formData.dateApplied}
-              onChange={handleInputChange}
-            />
-            <input
-              name="company"
-              placeholder="Company"
-              value={formData.company}
-              onChange={handleInputChange}
-            />
-            <input
-              name="role"
-              placeholder="Position"
-              value={formData.role}
-              onChange={handleInputChange}
-            />
-            <input
-              name="location"
-              placeholder="Location"
-              value={formData.location}
-              onChange={handleInputChange}
-            />
-            <select
-              name="status"
-              value={formData.status}
-              onChange={handleInputChange}
-            >
-              <option value="Applied">Applied</option>
-              <option value="Interviewing">Interviewing</option>
-              <option value="Offer">Offer</option>
-              <option value="Rejected">Rejected</option>
-            </select>
-            <button type="submit">Save</button>
-          </form>
+          <input
+            type="date"
+            name="dateApplied"
+            value={formData.dateApplied}
+            onChange={handleInputChange}
+            required
+          />
+          <input
+            name="company"
+            placeholder="Company"
+            value={formData.company}
+            onChange={handleInputChange}
+            required
+          />
+          <input
+            name="role"
+            placeholder="Position"
+            value={formData.role}
+            onChange={handleInputChange}
+            required
+          />
+          <input
+            name="location"
+            placeholder="Location"
+            value={formData.location}
+            onChange={handleInputChange}
+            required
+          />
+          <select
+            name="status"
+            value={formData.status}
+            onChange={handleInputChange}
+            required
+          >
+            <option value="Applied">Applied</option>
+            <option value="Interviewing">Interviewing</option>
+            <option value="Offer">Offer</option>
+            <option value="Rejected">Rejected</option>
+          </select>
+          <button type="submit">Save</button>
+        </form>
         </div>
       </section>
       <section className="stats-row">
